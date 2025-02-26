@@ -53,7 +53,7 @@ public class SecurityConfig {
                         .requestMatchers("/uploads/**").permitAll()
                         .requestMatchers("/pets/all").permitAll()
                         .requestMatchers("/api/jobOffers/**").permitAll()
-                        .requestMatchers("/api/JobApplication/**").permitAll()
+                        .requestMatchers("/api/JobApplication/").permitAll()
                         // Permit auth endpoints
                         .anyRequest().authenticated() // Protect other requests
                 )

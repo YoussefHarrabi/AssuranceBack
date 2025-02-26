@@ -1,11 +1,14 @@
 package com.assurance.assuranceback.Entity.UserEntity;
 
 
+import com.assurance.assuranceback.Entity.CarrieresEntity.JobApplication;
 import com.assurance.assuranceback.Enum.IdentityType;
 import com.assurance.assuranceback.Enum.Role;
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Set;
 
 @Entity
@@ -68,4 +71,7 @@ public class User {
     protected void onUpdate() {
         this.updatedAt = LocalDate.now();
     }
+
+    //@OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    //private List<JobApplication> jobApplications;
 }

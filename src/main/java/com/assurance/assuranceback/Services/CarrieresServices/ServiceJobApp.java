@@ -10,9 +10,10 @@ import java.util.List;
 import java.util.Optional;
 
 @Service
-public class ServiceJobApp implements IJobAppService{
+public class ServiceJobApp implements IJobAppService {
     @Autowired
     JobApplicationRepository jobApplicationRepository;
+
     @Override
     public List<JobApplication> retrieveallJobApplications() {
         return jobApplicationRepository.findAll();
@@ -28,9 +29,10 @@ public class ServiceJobApp implements IJobAppService{
         return jobApplicationRepository.save(JA);
 
     }
+
     @Override
     public void removeJobApplication(long id) {
-jobApplicationRepository.deleteById(id);
+        jobApplicationRepository.deleteById(id);
     }
 
     @Override
@@ -41,21 +43,23 @@ jobApplicationRepository.deleteById(id);
             JobApplication jobApplication = jobApplicationOptional.get();
 
             // Mettre à jour les propriétés en utilisant les méthodes getter et setter uniquement si elles ne sont pas nulles
-            if (jobAppDetails.getUser() != null) {
-                jobApplication.setUser(jobAppDetails.getUser());
+            if (jobAppDetails.getEmail() != null) {
+                jobApplication.setEmail(jobAppDetails.getEmail());}
+
+                if (jobAppDetails.getJobOffer() != null) {
+                    jobApplication.setJobOffer(jobAppDetails.getJobOffer());
+                }
+                if (jobAppDetails.getStatut() != null) {
+                    jobApplication.setStatut(jobAppDetails.getStatut());
+                }
+                if (jobAppDetails.getDateCandidature() != null) {
+                    jobApplication.setDateCandidature(jobAppDetails.getDateCandidature());
+                }
+
+                // Sauvegarder le jobApplication mis à jour
+                return jobApplicationRepository.save(jobApplication);
             }
-            if (jobAppDetails.getJobOffer() != null) {
-                jobApplication.setJobOffer(jobAppDetails.getJobOffer());
-            }
-            if (jobAppDetails.getStatut() != null) {
-                jobApplication.setStatut(jobAppDetails.getStatut());
-            }
-            if (jobAppDetails.getDateCandidature() != null) {
-                jobApplication.setDateCandidature(jobAppDetails.getDateCandidature());
-            }
-            // Sauvegarder le jobApplication mis à jour
-            return jobApplicationRepository.save(jobApplication);
+            return null;  // Ou gérer le cas où l'objet n'est pas trouvé
         }
-        return null;  // Ou gérer le cas où l'objet n'est pas trouvé
     }
-}
+

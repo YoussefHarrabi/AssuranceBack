@@ -25,7 +25,7 @@ public class JobOffer {
     private String salaire;
     private String competencesRequises; // Stocké en JSON ou String
     private int experienceMinimale;
-
+    private int nbrVacant;
     @Enumerated(EnumType.STRING)
     private StatutOffre statut = StatutOffre.ACTIVE;
 
