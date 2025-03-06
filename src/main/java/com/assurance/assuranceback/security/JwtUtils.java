@@ -21,6 +21,7 @@ public class JwtUtils {
     private final Key SECRET_KEY;
 
 
+
     public JwtUtils(@Value("${jwt.secret}") String secret) {
         this.SECRET_KEY = Keys.hmacShaKeyFor(Base64.getEncoder().encode(secret.getBytes()));
     }
@@ -50,6 +51,7 @@ public class JwtUtils {
         }
     }
 
+
     // Extract the claims from the token
     public Claims extractClaims(String token) {
         return Jwts.parser().setSigningKey(SECRET_KEY).parseClaimsJws(token).getBody();
@@ -67,11 +69,36 @@ public class JwtUtils {
 
     // Extract the user ID from the token
     public Long extractUserId(String token) {
-        return Long.valueOf(extractClaims(token).get("id").toString());
+        try {
+            Claims claims = Jwts.parser()
+                    .setSigningKey(SECRET_KEY)
+                    .parseClaimsJws(token)
+                    .getBody();
+
+            // Extract the userId from the "id" claim, not from the subject
+            return Long.parseLong(claims.get("id").toString());
+        } catch (Exception e) {
+            throw new RuntimeException("Invalid token", e);
+        }
     }
+    public String generateLongLifeToken(String email, Set<Role> roles, Long userId) {
+        List<String> roleNames = roles.stream().map(Enum::name).collect(Collectors.toList());
+
+        return Jwts.builder()
+                .setSubject(email)
+                .claim("roles", roleNames)
+                .claim("id", userId)
+                .setIssuedAt(new Date())
+                .setExpiration(new Date(System.currentTimeMillis() + 1000L * 60 * 60 * 24 * 365)) // 1 year expiration
+                .signWith(SECRET_KEY)
+                .compact();
+    }
+
 
     // Check if the token is expired
     private boolean isTokenExpired(String token) {
         return extractClaims(token).getExpiration().before(new Date());
     }
+
 }
+

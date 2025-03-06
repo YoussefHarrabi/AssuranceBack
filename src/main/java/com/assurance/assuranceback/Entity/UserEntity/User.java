@@ -59,6 +59,14 @@ public class User {
 
     private LocalDate updatedAt;
 
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private MfaInfo mfaInfo;
+
+    // You can add this method for convenience, but it's optional
+    public boolean isMfaEnabled() {
+        return mfaInfo != null && mfaInfo.isEnabled();
+    }
+
     @PrePersist
     protected void onCreate() {
         this.createdAt = LocalDate.now();

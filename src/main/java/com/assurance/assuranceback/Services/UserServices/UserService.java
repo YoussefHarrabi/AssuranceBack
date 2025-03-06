@@ -1,13 +1,16 @@
 package com.assurance.assuranceback.Services.UserServices;
 
 import com.assurance.assuranceback.Entity.UserEntity.User;
+import com.assurance.assuranceback.Enum.Role;
 import com.assurance.assuranceback.Repository.UserRepositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 @Service
 public class UserService {private final UserRepository userRepository;
@@ -39,7 +42,26 @@ public class UserService {private final UserRepository userRepository;
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         return userRepository.save(user);
     }
+    public User updateUserRole(Long id, String role) {
+        User user = getUserById(id).get();
+        // Create a new mutable set instead of using Set.of() which creates an immutable set
+        Set<Role> roles = new HashSet<>();
 
+        // Add the appropriate role
+        if ("ADMIN".equals(role)) {
+            roles.add(Role.ADMIN);
+        } else if ("CLIENT".equals(role)) {
+            roles.add(Role.CLIENT);
+        } else {
+            // Default to CLIENT if role is not recognized
+            roles.add(Role.CLIENT);
+        }
+
+        // Set the new mutable set of roles
+        user.setRoles(roles);
+
+        return userRepository.save(user);
+    }
     public User updateUser(Long id, User updatedUser) {
         return userRepository.findById(id)
                 .map(user -> {
