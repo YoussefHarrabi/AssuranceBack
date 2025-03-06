@@ -1,10 +1,11 @@
 package com.assurance.assuranceback.Services.FactureService;
 
-
 import com.assurance.assuranceback.Entity.FactureEntity.Facture;
 import com.assurance.assuranceback.Entity.FactureEntity.Paiement;
+import com.assurance.assuranceback.Entity.UserEntity.User;
 import com.assurance.assuranceback.Repository.FactureRepository.FactureRepos;
 import com.assurance.assuranceback.Repository.FactureRepository.PaiementRepos;
+import com.assurance.assuranceback.Repository.UserRepositories.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,38 +22,50 @@ public class FactureService implements IFactureService {
     private FactureRepos factureRepos;
     @Autowired
     private PaiementRepos paiementRepos;
+    @Autowired
+    private UserRepository userRepos;
+
     @Override
-    public void addFacture(Facture facture) {
+    public Facture addFacture(Facture facture) {
+        // Vérifiez si l'utilisateur existe
+        User user = userRepos.findById(facture.getUser().getId())
+                .orElseThrow(() -> new EntityNotFoundException("User not found"));
 
-        factureRepos.save(facture);
-
+        for (Paiement paiement : facture.getPaiements()) {
+            paiement.setFacture(facture);
         }
+
+        return factureRepos.save(facture);
+    }
+
     @Override
-    public void updateFacture(Long id, Facture updatedFacture) {
+    public Facture updateFacture(Long id, Facture updatedFacture) {
         Facture existingFacture = factureRepos.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Facture not found"));
 
-        // Update fields of existingFacture with updatedFacture
-        existingFacture.setIdClient(updatedFacture.getIdClient());
+        // Vérifiez si l'utilisateur existe
+        User user = userRepos.findById(updatedFacture.getUser().getId())
+                .orElseThrow(() -> new EntityNotFoundException("User not found"));
+
         existingFacture.setMontant(updatedFacture.getMontant());
         existingFacture.setDateEmission(updatedFacture.getDateEmission());
         existingFacture.setFactureStatut(updatedFacture.getFactureStatut());
+        existingFacture.setUser(updatedFacture.getUser());
 
-        // Clear existing paiements and add new paiements
         existingFacture.getPaiements().clear();
         for (Paiement paiement : updatedFacture.getPaiements()) {
             paiement.setFacture(existingFacture);
             existingFacture.getPaiements().add(paiement);
         }
 
-        // Save the updated facture
-         factureRepos.save(existingFacture);
+        return factureRepos.save(existingFacture);
     }
-    @Override
-    public List<Facture> getAllFactures(){
-        return factureRepos.findAll();
 
+    @Override
+    public List<Facture> getAllFactures() {
+        return factureRepos.findAll();
     }
+
     @Override
     public Optional<Facture> getFactureById(Long id) {
         return factureRepos.findById(id);
@@ -66,4 +79,8 @@ public class FactureService implements IFactureService {
         factureRepos.deleteById(id);
     }
 
+    @Override
+    public List<Facture> findByUserId(Long userId) {
+        return factureRepos.findByUserId(userId);
+    }
 }

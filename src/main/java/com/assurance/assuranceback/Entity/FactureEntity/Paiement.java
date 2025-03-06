@@ -1,7 +1,6 @@
 package com.assurance.assuranceback.Entity.FactureEntity;
 
 import com.assurance.assuranceback.Enum.MethodePaiement;
-import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
@@ -23,9 +22,8 @@ public class Paiement {
     @Enumerated(EnumType.STRING)
     private MethodePaiement methodePaiement;
 
-    // ✅ Relation avec Facture (Plusieurs Paiements -> Une Facture)
+    // Relation avec Facture (Plusieurs Paiements -> Une Facture)
     @ManyToOne
     @JoinColumn(name = "facture_id") // Nom de la clé étrangère en BDD
-    @JsonBackReference // Empêche la boucle infinie lors de la sérialisation
     private Facture facture;
 }

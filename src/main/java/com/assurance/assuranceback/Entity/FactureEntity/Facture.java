@@ -1,7 +1,8 @@
 package com.assurance.assuranceback.Entity.FactureEntity;
 
+import com.assurance.assuranceback.Entity.UserEntity.User;
 import com.assurance.assuranceback.Enum.FactureStatut;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
@@ -19,18 +20,25 @@ import java.util.List;
 public class Facture {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long factureId; // 🟢 Corrigé la majuscule pour respecter les conventions Java
-    private Long idClient;
+    private Long factureId; // Corrigé la majuscule pour respecter les conventions Java
     private float montant;
     private String dateEmission;
-
-
 
     @Enumerated(EnumType.STRING)
     private FactureStatut factureStatut;
 
-    // ✅ Relation avec Paiement (Une Facture -> Plusieurs Paiements)
+    // Relation avec Paiement (Une Facture -> Plusieurs Paiements)
     @OneToMany(mappedBy = "facture", cascade = CascadeType.ALL, orphanRemoval = true)
-    @JsonManagedReference // Empêche la boucle infinie lors de la sérialisation
-    private List<Paiement> paiements=new ArrayList<>();;
+    @JsonIgnore
+    private List<Paiement> paiements = new ArrayList<>();
+
+    // Relation avec User (Plusieurs Factures -> Un seul User)
+    @ManyToOne
+    @JoinColumn(name = "user_id", nullable = false) // Clé étrangère dans Facture
+    private User user;
+
+    public void addPaiement(Paiement paiement) {
+        paiements.add(paiement);
+        paiement.setFacture(this);
+    }
 }

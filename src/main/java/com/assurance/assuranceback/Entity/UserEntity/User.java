@@ -1,11 +1,16 @@
 package com.assurance.assuranceback.Entity.UserEntity;
 
 
+import com.assurance.assuranceback.Entity.FactureEntity.Facture;
 import com.assurance.assuranceback.Enum.IdentityType;
 import com.assurance.assuranceback.Enum.Role;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 
 @Entity
@@ -68,4 +73,15 @@ public class User {
     protected void onUpdate() {
         this.updatedAt = LocalDate.now();
     }
+
+    // Relation avec Facture (Un User -> Plusieurs Factures)
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
+    private List<Facture> factures = new ArrayList<>();
+
+    public boolean getClient() {
+        return roles != null && roles.contains(Role.CLIENT);
+    }
+
+
 }

@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -48,17 +49,16 @@ public class SecurityConfig {
                 .cors(Customizer.withDefaults()) // Enable CORS with default configuration
                 .csrf(csrf -> csrf.disable()) // Disable CSRF for stateless API
                 .authorizeHttpRequests(auth -> auth
+                        .requestMatchers(HttpMethod.POST, "/api/paiement/payer/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/paiement/facture/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/statistics/societe").permitAll() // Permettre l'accès à cette API
                         .requestMatchers("/api/**").permitAll()
-                        .requestMatchers("/api/actualities").permitAll()// Permit auth endpoints
-                        .requestMatchers("/uploads/**").permitAll()
-                        .requestMatchers("/pets/all").permitAll()
-                        // Permit auth endpoints
+                        .requestMatchers("/api/actualities").permitAll()
+                        .requestMatchers("/api/factPaim/").permitAll()
+                        .requestMatchers("/api/users/").permitAll()
                         .anyRequest().authenticated() // Protect other requests
                 )
                 .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // Stateless sessions
-                //.oauth2ResourceServer(oauth2 -> oauth2
-                //        .jwt(jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter())) // Configure JWT
-                //)
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class) // Add JWT Filter
                 .build();
     }
