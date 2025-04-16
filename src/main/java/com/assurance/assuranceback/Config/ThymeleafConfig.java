@@ -1,4 +1,4 @@
-package com.assurance.assuranceback.config;
+package com.assurance.assuranceback.Config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

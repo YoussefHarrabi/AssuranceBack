@@ -27,6 +27,7 @@ public class PasswordResetToken {
 
     private LocalDateTime expiryDateTime;
 
+
     private boolean used;
 
     @PrePersist

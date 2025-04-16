@@ -1,8 +1,11 @@
 package com.assurance.assuranceback.Controller.UserController;
 
+import com.assurance.assuranceback.DTOs.GoogleAuthRequest;
+import com.assurance.assuranceback.DTOs.OAuth2AuthResponse;
 import com.assurance.assuranceback.Entity.UserEntity.User;
 import com.assurance.assuranceback.Enum.Role;
 import com.assurance.assuranceback.Repository.UserRepositories.UserRepository;
+import com.assurance.assuranceback.Services.UserServices.Authentication.GoogleOAuth2Service;
 import com.assurance.assuranceback.Services.UserServices.MfaService;
 import com.assurance.assuranceback.security.JwtUtils;
 import io.jsonwebtoken.Claims;
@@ -26,6 +29,8 @@ public class AuthController {
     private final PasswordEncoder passwordEncoder;
     private final JwtUtils jwtService;
     private final MfaService mfaService;
+    private final GoogleOAuth2Service googleOAuth2Service;
+
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody Map<String, String> user) {
@@ -252,5 +257,67 @@ public class AuthController {
         response.put("formattedTime", formatter.format(currentTime));
 
         return ResponseEntity.ok(response);
+    }
+    // Add new Google OAuth2 login endpoint
+    @PostMapping("/google")
+    public ResponseEntity<?> googleAuth(@RequestBody GoogleAuthRequest authRequest) {
+        try {
+            OAuth2AuthResponse response = googleOAuth2Service.authenticateUser(authRequest);
+
+            // If MFA is required, return appropriate response
+            if (response.isRequiresMfa()) {
+                return ResponseEntity.ok(Map.of(
+                        "requiresMfa", true,
+                        "email", response.getEmail(),
+                        "userId", response.getUserId()
+                ));
+            }
+
+            // Otherwise return the token
+            return ResponseEntity.ok(Map.of(
+                    "token", response.getAccessToken(),
+                    "requiresMfa", false
+            ));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("message", "Google authentication failed: " + e.getMessage()));
+        }
+    }
+
+    // Add MFA verification for Google OAuth2 users
+    @PostMapping("/google/verify-mfa")
+    public ResponseEntity<?> verifyGoogleMfa(@RequestBody Map<String, String> mfaRequest) {
+        try {
+            String email = mfaRequest.get("email");
+            String code = mfaRequest.get("code");
+
+            // Find user
+            User dbUser = userRepository.findByEmail(email)
+                    .orElseThrow(() -> new RuntimeException("User not found with email: " + email));
+
+            // Get MFA secret
+            String secret = mfaService.getSecretIfExists(dbUser);
+            if (secret == null) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body(Map.of("message", "MFA not set up for this user"));
+            }
+
+            // Verify code
+            if (!mfaService.verifyCode(code, secret)) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body(Map.of("message", "Invalid MFA code"));
+            }
+
+            // Generate token
+            String token = jwtService.generateToken(email, dbUser.getRoles(), dbUser.getId());
+
+            return ResponseEntity.ok(Map.of(
+                    "token", token,
+                    "requiresMfa", false
+            ));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("message", "Error verifying MFA: " + e.getMessage()));
+        }
     }
 }
