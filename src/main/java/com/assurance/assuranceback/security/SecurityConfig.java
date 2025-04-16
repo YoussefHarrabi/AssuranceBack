@@ -54,7 +54,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/statistics/societe").permitAll() // Permettre l'accès à cette API
                         .requestMatchers("/api/**").permitAll()
                         .requestMatchers("/api/actualities").permitAll()
-                        .requestMatchers("/api/factPaim/").permitAll()
+                        .requestMatchers("/api/factPaim/**").permitAll()
                         .requestMatchers("/api/users/").permitAll()
                         .anyRequest().authenticated() // Protect other requests
                 )

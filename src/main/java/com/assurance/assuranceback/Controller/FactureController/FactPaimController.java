@@ -1,6 +1,7 @@
 package com.assurance.assuranceback.Controller.FactureController;
 
 import com.assurance.assuranceback.Entity.FactureEntity.Facture;
+import com.assurance.assuranceback.Entity.FactureEntity.ResponseMessage;
 import com.assurance.assuranceback.Services.FactureService.IFactureService;
 import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,5 +49,25 @@ public class FactPaimController {
     public ResponseEntity<Void> deleteFacture(@PathVariable Long id) {
         iFactureService.deleteFacture(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/{factureId}/send-notification")
+    public ResponseEntity<ResponseMessage> sendUnpaidInvoiceNotification(
+            @PathVariable Long factureId) {
+        try {
+            // Utilisez la date actuelle fournie
+            String currentDate = "2025-04-15 19:53:12";
+
+            ResponseMessage response = iFactureService.sendUnpaidInvoiceNotification(factureId, currentDate);
+
+            if (response.getStatus().equals("success")) {
+                return ResponseEntity.ok(response);
+            } else {
+                return ResponseEntity.badRequest().body(response);
+            }
+        } catch (Exception e) {
+            return ResponseEntity.badRequest()
+                    .body(new ResponseMessage("error", "Erreur lors de l'envoi de la notification: " + e.getMessage()));
+        }
     }
 }

@@ -20,7 +20,7 @@ import java.util.List;
 public class Facture {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long factureId; // Corrigé la majuscule pour respecter les conventions Java
+    private Long factureId;
     private float montant;
     private String dateEmission;
 
