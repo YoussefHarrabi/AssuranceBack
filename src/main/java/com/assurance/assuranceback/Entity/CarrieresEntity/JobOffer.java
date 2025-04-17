@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.time.LocalDate;
+import java.util.List;
 
 @Entity
 @Getter
@@ -28,5 +29,7 @@ public class JobOffer {
     private int nbrVacant;
     @Enumerated(EnumType.STRING)
     private StatutOffre statut = StatutOffre.ACTIVE;
-
+  @ManyToOne
+  @JoinColumn(name = "quiz_id")
+  private Quiz quiz;
 }

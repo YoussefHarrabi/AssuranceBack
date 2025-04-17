@@ -5,6 +5,7 @@ import com.assurance.assuranceback.Entity.CarrieresEntity.JobApplication;
 import com.assurance.assuranceback.Enum.IdentityType;
 import com.assurance.assuranceback.Enum.Role;
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDate;
@@ -72,6 +73,7 @@ public class User {
         this.updatedAt = LocalDate.now();
     }
 
-    //@OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
-    //private List<JobApplication> jobApplications;
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
+    private List<JobApplication> jobApplications;
 }

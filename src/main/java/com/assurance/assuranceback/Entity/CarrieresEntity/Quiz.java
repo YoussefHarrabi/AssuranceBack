@@ -1,25 +1,28 @@
 package com.assurance.assuranceback.Entity.CarrieresEntity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+
+import java.util.List;
 
 @Entity
 @Setter
 @Getter
 public class Quiz {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+  @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  private Long id;
 
-    @OneToOne
-    @JoinColumn(name = "candidature_id", nullable = false, unique = true)
-    private JobApplication JobApplication;
+  private String title;
 
-    private String lienQuiz;
-    private Integer score;
+  @JsonIgnore
+  @OneToMany(mappedBy = "quiz")
+  private List<JobOffer> jobOffers;
 
-
+@JsonIgnore
+  @OneToMany(mappedBy = "quiz", cascade = CascadeType.ALL)
+  private List<QuizQuestion> questions;
 
 }
-

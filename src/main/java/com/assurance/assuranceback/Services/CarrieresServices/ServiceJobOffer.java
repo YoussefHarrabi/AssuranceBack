@@ -1,10 +1,11 @@
 package com.assurance.assuranceback.Services.CarrieresServices;
 
 import com.assurance.assuranceback.Entity.CarrieresEntity.JobOffer;
-import com.assurance.assuranceback.Repository.CarrieresRepositories.JobApplicationRepository;
+import com.assurance.assuranceback.Entity.CarrieresEntity.Quiz;
+import com.assurance.assuranceback.Enum.StatutOffre;
 import com.assurance.assuranceback.Repository.CarrieresRepositories.JobOfferRepository;
-import com.assurance.assuranceback.Repository.CarrieresRepositories.QuizRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.context.config.ConfigDataResourceNotFoundException;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -79,4 +80,14 @@ jobOfferRepository.deleteById(id);
         }
         return null;  // Ou gérer le cas où l'objet n'est pas trouvé
     }
+    public List<JobOffer> searchJobOffersByTitle(String title) {
+        return jobOfferRepository.findByTitreContainingIgnoreCase(title);
+    }
+  @Override
+    public Optional<Long> getQuizIdByJobOffer(Long jobOfferId) {
+    return jobOfferRepository.findById(jobOfferId)
+      .map(JobOffer::getQuiz)
+      .map(Quiz::getId);
+  }
+
 }
