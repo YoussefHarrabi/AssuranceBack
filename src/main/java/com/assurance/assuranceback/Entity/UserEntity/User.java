@@ -1,11 +1,16 @@
 package com.assurance.assuranceback.Entity.UserEntity;
 
 
+import com.assurance.assuranceback.Entity.ReclamationEntity.Complaint;
+import com.assurance.assuranceback.Entity.ReclamationEntity.Response;
+import com.assurance.assuranceback.Entity.ReclamationEntity.Review;
 import com.assurance.assuranceback.Enum.IdentityType;
 import com.assurance.assuranceback.Enum.Role;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Set;
 
 @Entity
@@ -48,6 +53,7 @@ public class User {
     @Column(nullable = false)
     private String password;
 
+
     @ElementCollection(targetClass = Role.class, fetch = FetchType.EAGER)
     @CollectionTable(name = "user_roles", joinColumns = @JoinColumn(name = "user_id"))
     @Enumerated(EnumType.STRING)
@@ -67,5 +73,24 @@ public class User {
     @PreUpdate
     protected void onUpdate() {
         this.updatedAt = LocalDate.now();
+    }
+
+    @JsonIgnore
+    @OneToMany(mappedBy = "client", cascade = CascadeType.ALL)
+    private List<Complaint> complaints;
+
+
+    @JsonIgnore
+    @OneToMany(mappedBy = "advisor", cascade = CascadeType.ALL)
+    private List<Response> responses;
+
+    @OneToMany(mappedBy = "client", cascade = CascadeType.ALL)
+    private List<Review> reviews;
+
+    public boolean isAdvisor() {
+        return roles.contains(Role.ADVISOR);
+    }
+    public boolean isClient() {
+        return roles.contains(Role.CLIENT);
     }
 }

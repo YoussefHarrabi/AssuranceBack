@@ -1,0 +1,13 @@
+package com.assurance.assuranceback.Enum;
+
+public enum ComplaintType {
+
+    SINISTRE_AUTOMOBILE,
+    SINISTRE_HABITATION,
+    ASSURANCE_SANTE,
+    ASSURANCE_VIE,
+    RETARD,
+    ERREUR_FACTURATION,
+    RESILIATION_CONTRAT,
+    SERVICE_CLIENT_INSATISFAISANT;
+}

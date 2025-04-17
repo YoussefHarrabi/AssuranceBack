@@ -5,7 +5,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -18,9 +17,14 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtAut
 import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import javax.crypto.spec.SecretKeySpec;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 
 @Configuration
 @EnableWebSecurity
@@ -37,7 +41,6 @@ public class SecurityConfig {
 
     @Bean
     public JwtDecoder jwtDecoder() {
-        // Convert the secret key String to a SecretKey object
         var secretKey = new SecretKeySpec(jwtSecret.getBytes(StandardCharsets.UTF_8), "HmacSHA256");
         return NimbusJwtDecoder.withSecretKey(secretKey).build();
     }
@@ -45,22 +48,38 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity httpSecurity) throws Exception {
         return httpSecurity
-                .cors(Customizer.withDefaults()) // Enable CORS with default configuration
-                .csrf(csrf -> csrf.disable()) // Disable CSRF for stateless API
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+                .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/api/chatbot/**").permitAll() // Ajout du endpoint chatbot
+                        .requestMatchers("/api/gemini/**").permitAll() // Ajout du endpoint chatbot
+                        .requestMatchers("/api/reviews/**").permitAll()
+
                         .requestMatchers("/api/**").permitAll()
-                        .requestMatchers("/api/actualities").permitAll()// Permit auth endpoints
+                        .requestMatchers("/api/actualities").permitAll()
                         .requestMatchers("/uploads/**").permitAll()
-                        .requestMatchers("/pets/all").permitAll()
-                        // Permit auth endpoints
-                        .anyRequest().authenticated() // Protect other requests
+                        .requestMatchers("/api/complaints").permitAll()
+                        .requestMatchers("/api/responses").permitAll()
+                        .anyRequest().authenticated()
                 )
-                .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // Stateless sessions
-                //.oauth2ResourceServer(oauth2 -> oauth2
-                //        .jwt(jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter())) // Configure JWT
-                //)
-                .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class) // Add JWT Filter
+                .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();
+    }
+
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+        configuration.setAllowedOriginPatterns(Arrays.asList("http://localhost:4200")); // Pour Angular
+        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "X-Requested-With", "accept", "Origin", "Access-Control-Request-Method", "Access-Control-Request-Headers"));
+        configuration.setExposedHeaders(Arrays.asList("Access-Control-Allow-Origin", "Access-Control-Allow-Credentials"));
+        configuration.setAllowCredentials(true);
+        configuration.setMaxAge(3600L);
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+        return source;
     }
 
     @Bean
@@ -73,14 +92,12 @@ public class SecurityConfig {
         return customUserDetailsService;
     }
 
-    // Custom JWT Authentication Converter to convert JWT claims to authorities
     private JwtAuthenticationConverter jwtAuthenticationConverter() {
         JwtGrantedAuthoritiesConverter authoritiesConverter = new JwtGrantedAuthoritiesConverter();
         authoritiesConverter.setAuthorityPrefix("ROLE_");
-        authoritiesConverter.setAuthoritiesClaimName("roles"); // Use "roles" claim in the JWT for authorities
+        authoritiesConverter.setAuthoritiesClaimName("roles");
         JwtAuthenticationConverter jwtAuthenticationConverter = new JwtAuthenticationConverter();
         jwtAuthenticationConverter.setJwtGrantedAuthoritiesConverter(authoritiesConverter);
         return jwtAuthenticationConverter;
     }
-
 }
