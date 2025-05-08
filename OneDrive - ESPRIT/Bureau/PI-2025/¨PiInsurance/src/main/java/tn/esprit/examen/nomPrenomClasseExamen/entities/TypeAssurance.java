@@ -18,7 +18,4 @@ public class TypeAssurance {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private String nom;
-
-
-
 }

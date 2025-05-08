@@ -27,15 +27,41 @@ public class ServiceDemandeAssurance implements IDemandeAssurance {
 
     @Override
     public DemandeAssurance add(DemandeAssurance demandeAssurance) {
-        // Verify if the insurance type exists before setting it
+        // Vérifier l'existence du type d'assurance
         TypeAssurance typeAssurance = typeAssuranceRepository.findById(demandeAssurance.getTypeAssurance().getId())
                 .orElseThrow(() -> new ResourceNotFoundException("Insurance type not found with ID: "
                         + demandeAssurance.getTypeAssurance().getId()));
 
-        demandeAssurance.setTypeAssurance(typeAssurance); // Set existing type
+        demandeAssurance.setTypeAssurance(typeAssurance);
 
-        return demandeAssuranceRepository.save(demandeAssurance);
+        // Définir le statut par défaut à PENDING si non défini
+        if (demandeAssurance.getStatus() == null) {
+            demandeAssurance.setStatus(StatusDemande.PENDING);
+        }
+
+        DemandeAssurance saved = demandeAssuranceRepository.save(demandeAssurance);
+
+        // Vérifie que l'email est présent et envoie l'email si statut = PENDING
+        if (saved.getStatus() == StatusDemande.PENDING && saved.getUserEmail() != null && !saved.getUserEmail().isBlank()) {
+            try {
+                String subject = "📥 Votre demande d'assurance est en cours de traitement";
+                String body = generateHtmlEmailContent(saved.getNomAssurance(), saved.getStatus());
+
+                System.out.println("📧 Envoi d'email à : " + saved.getUserEmail());
+                System.out.println("📨 Contenu : " + body);
+
+                emailService.sendEmail(saved.getUserEmail(), subject, body);
+            } catch (MessagingException e) {
+                log.error("❌ Échec de l'envoi de l'email à {}", saved.getUserEmail(), e);
+            }
+        } else {
+            System.out.println("⚠️ Aucune adresse email renseignée, email non envoyé.");
+        }
+
+        return saved;
     }
+
+
 
     @Override
     public List<DemandeAssurance> getAll() {
@@ -84,31 +110,34 @@ public class ServiceDemandeAssurance implements IDemandeAssurance {
 
     // Updated method to handle MessagingException
     public DemandeAssurance updateStatus(Long demandeId, StatusDemande nouveauStatus, String emailClient) {
-        // Find the DemandeAssurance object
+        // Rechercher la demande d'assurance
         DemandeAssurance demande = demandeAssuranceRepository.findById(demandeId)
                 .orElseThrow(() -> new ResourceNotFoundException("Demande non trouvée avec ID " + demandeId));
 
-        // Set the new status
+        // Mettre à jour le statut
         demande.setStatus(nouveauStatus);
 
-        // Save the updated demande
+        // Sauvegarder la demande mise à jour
         DemandeAssurance updated = demandeAssuranceRepository.save(demande);
 
+        // Tenter d'envoyer un email
         try {
-            // Send email notification after status update
-            emailService.sendEmail(
-                    emailClient,
-                    "📩 Mise à jour de votre demande d'assurance",
-                    "Votre demande d’assurance <strong>\"" + demande.getNomAssurance() + "\"</strong> a été mise à jour au statut : <strong>" + nouveauStatus.name() + "</strong>."
-            );
+            String subject = "📩 Mise à jour de votre demande d'assurance";
+            String body = "<p>Bonjour,</p>" +
+                    "<p>Votre demande d’assurance <strong>\"" + demande.getNomAssurance() + "\"</strong> a été mise à jour au statut : " +
+                    "<strong>" + nouveauStatus.name() + "</strong>.</p>" +
+                    "<p>Merci pour votre confiance.</p>";
 
+            emailService.sendEmail(emailClient, subject, body);
         } catch (MessagingException e) {
-            log.error("Échec de l'envoi de l'email", e);
-            throw new RuntimeException("Échec de l'envoi de l'email", e);
+            log.error("Échec de l'envoi de l'email à {}", emailClient, e);
+            // Optionnel : ne pas bloquer le processus si l’email échoue
+            // throw new RuntimeException("Échec de l'envoi de l'email", e);
         }
 
         return updated;
     }
+
     private String generateHtmlEmailContent(String nomAssurance, StatusDemande status) {
         return """
         <!DOCTYPE html>
