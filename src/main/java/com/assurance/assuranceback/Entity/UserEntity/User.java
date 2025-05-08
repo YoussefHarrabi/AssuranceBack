@@ -1,6 +1,9 @@
 package com.assurance.assuranceback.Entity.UserEntity;
 
 
+import com.assurance.assuranceback.Entity.loyaltyEntity.Bonus;
+import com.assurance.assuranceback.Entity.loyaltyEntity.Challenge;
+import com.assurance.assuranceback.Entity.loyaltyEntity.LoyaltyStatus;
 import com.assurance.assuranceback.Enum.IdentityType;
 import com.assurance.assuranceback.Enum.Role;
 import jakarta.persistence.*;
@@ -61,6 +64,30 @@ public class User {
 
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private MfaInfo mfaInfo;
+
+    // Loyalty Program fields
+    @Column(nullable = false)
+    private Integer loyaltyPoints = 0;
+
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "loyalty_status_id")
+    private LoyaltyStatus loyaltyStatus;
+
+    @ManyToMany
+    @JoinTable(
+            name = "user_completed_challenges",
+            joinColumns = @JoinColumn(name = "user_id"),
+            inverseJoinColumns = @JoinColumn(name = "challenge_id")
+    )
+    private Set<Challenge> completedChallenges;
+
+    @ManyToMany
+    @JoinTable(
+            name = "user_redeemed_bonuses",
+            joinColumns = @JoinColumn(name = "user_id"),
+            inverseJoinColumns = @JoinColumn(name = "bonus_id")
+    )
+    private Set<Bonus> redeemedBonuses;
 
     // You can add this method for convenience, but it's optional
     public boolean isMfaEnabled() {

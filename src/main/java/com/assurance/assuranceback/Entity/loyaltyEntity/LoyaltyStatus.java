@@ -8,7 +8,6 @@ import java.time.LocalDate;
 import java.util.Set;
 
 @Entity
-@Table(name = "loyalty_status")
 @Getter
 @Setter
 @NoArgsConstructor

@@ -1,14 +1,14 @@
 package com.assurance.assuranceback.Entity.loyaltyEntity;
 
+
 import com.assurance.assuranceback.Entity.UserEntity.User;
 import jakarta.persistence.*;
 import lombok.*;
-
 import java.time.LocalDate;
 import java.util.Set;
 
 @Entity
-@Table(name = "challenges")
+
 @Getter
 @Setter
 @NoArgsConstructor
