@@ -34,10 +34,12 @@ public class ServiceQuiz implements IServiceQuiz {
 
   @Override
   public Quiz retrieveQuizById(long id) {
-    // Récupérer un quiz par son ID
     return quizRepository.findById(id)
-      .orElseThrow(() -> new RuntimeException("Quiz introuvable avec l'ID : " + id));
+      .orElse(null);
+
   }
+
+
 
   @Override
   public Quiz addQuiz(Quiz quiz) {

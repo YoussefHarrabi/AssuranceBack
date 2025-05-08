@@ -5,6 +5,7 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -22,7 +23,7 @@ public class Quiz {
   private List<JobOffer> jobOffers;
 
 @JsonIgnore
-  @OneToMany(mappedBy = "quiz", cascade = CascadeType.ALL)
-  private List<QuizQuestion> questions;
+@OneToMany(mappedBy = "quiz", fetch = FetchType.EAGER) // EAGER pour charger les questions automatiquement
+private List<QuizQuestion> questions = new ArrayList<>();
 
 }
