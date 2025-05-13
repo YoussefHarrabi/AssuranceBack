@@ -30,4 +30,4 @@ This backend powers a secure, intelligent, and real-time digital insurance ecosy
 | ORM               | Spring Data JPA                 |
 | Real-time Comm.   | Spring Messaging + STOMP        |
 | Containerization  | Docker                          |
-| CV Parsing
+
